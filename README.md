@@ -3,6 +3,13 @@ POC using a standard plugin to enable research plugins.
 
 [Research plugins should only be enabled in nightly/snapshot builds](https://docs.scala-lang.org/scala3/reference/changed-features/compiler-plugins.html).
 
+# Does it matter?
+I don't think so. The more I dig around the more ways I find to "adjust" the compiler pipeline in arbitrary ways. It's clearly stated that research plugins are not supported in release versions of the compiler, so if you want to use this, you're not supported. If you depend on this, you're asking for your build to break.
+
+The compiler team may not agree with this assessment - I'll leave it up to them to decide if they want to close this loophole or leave it as a known convenience workaround for which you're explicitly not supported. If things start heading down the scala 2 macros path, I'm sure it'll be closed. Use responsibly :)
+
+I'm deliberately not publishing this to Maven Central - if you want to use it, you'll need to publish locally. I also suggest removing the code that removes half the phases from the compiler pipeline ;)
+
 # Demo
 `sbt demo`
 ```
@@ -21,6 +28,7 @@ java.lang.AssertionError: assertion failed: pruneErasedDefs requires explicitOut
 [error] java.lang.AssertionError: assertion failed: pruneErasedDefs requires explicitOuter to be in different TreeTransformer
 ```
 Based on this important research, we can conclude that the compiler doesn't work very well with half the phases disabled :)
+
 # The problem
 Here is [the code](https://github.com/lampepfl/dotty/blob/93eb3bb6287ecf8f5d2f37518c6e722587c6e1e9/tests/pos-with-compiler-cc/dotc/plugins/Plugins.scala#L119-L138) that adds the plugin phases to the phase plan:
 
@@ -57,6 +65,3 @@ Here is [the code](https://github.com/lampepfl/dotty/blob/93eb3bb6287ecf8f5d2f37
 
 3. Check if experimental feature should be enabled before initializing the `StandardPlugin` phases.
 4. Use the stored result of the check (which can't be accessed by plugin initialization) to see if experimental features should be enabled.
-
-# Does it matter?
-I'm not really sure. Compiler plugins are already very powerful, and I don't think this adds significantly more risk. The main threat here is that someone makes a very useful plugin that the community wants to use, then the genie will be out of the bottle like the "experimental" macros in Scala 2 which very quickly became foundational to the scala ecosystem.
